@@ -79,6 +79,7 @@ const SOUND_INTERVAL: Record<AlarmSound, number> = {
   classic: 700,
   digital: 500,
   birds: 1600,
+  custom: 2000,
 }
 
 export default function RingingOverlay() {

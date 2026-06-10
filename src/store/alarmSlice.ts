@@ -7,7 +7,9 @@ const STORAGE_KEY = 'alarm-app-alarms'
 function loadAlarms(): Alarm[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as Alarm[]) : []
+    if (!raw) return []
+    const alarms = JSON.parse(raw) as Alarm[]
+    return alarms.map(a => ({ snoozeDuration: 5, ...a }))
   } catch {
     return []
   }
@@ -31,6 +33,7 @@ const alarmSlice = createSlice({
   reducers: {
     addAlarm(state, action: PayloadAction<Omit<Alarm, 'id' | 'createdAt' | 'ringing'>>) {
       const newAlarm: Alarm = {
+        snoozeDuration: 5,
         ...action.payload,
         id: generateId(),
         createdAt: Date.now(),

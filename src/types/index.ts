@@ -9,6 +9,7 @@ export interface Alarm {
   sound: AlarmSound
   customSoundDataUrl?: string | null
   customSoundName?: string | null
+  snoozeDuration: number // minutes
   createdAt: number
   ringing?: boolean
   snoozedUntil?: number | null

@@ -7,6 +7,7 @@ import { getSoundLabel } from '../utils'
 
 const DAYS: RepeatDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const BUILT_IN_SOUNDS: AlarmSound[] = ['gentle', 'classic', 'digital', 'birds']
+const SNOOZE_OPTIONS = [1, 5, 10, 15, 20, 30]
 const MAX_FILE_BYTES = 2 * 1024 * 1024 // 2 MB
 
 export default function AlarmModal() {
@@ -20,6 +21,7 @@ export default function AlarmModal() {
   const [sound, setSound] = useState<AlarmSound>('gentle')
   const [customSoundDataUrl, setCustomSoundDataUrl] = useState<string | null>(null)
   const [customSoundName, setCustomSoundName] = useState<string | null>(null)
+  const [snoozeDuration, setSnoozeDuration] = useState(5)
 
   useEffect(() => {
     if (editingAlarm) {
@@ -29,6 +31,7 @@ export default function AlarmModal() {
       setSound(editingAlarm.sound)
       setCustomSoundDataUrl(editingAlarm.customSoundDataUrl ?? null)
       setCustomSoundName(editingAlarm.customSoundName ?? null)
+      setSnoozeDuration(editingAlarm.snoozeDuration ?? 5)
     } else {
       setTime('07:00')
       setLabel('')
@@ -36,6 +39,7 @@ export default function AlarmModal() {
       setSound('gentle')
       setCustomSoundDataUrl(null)
       setCustomSoundName(null)
+      setSnoozeDuration(5)
     }
   }, [editingAlarm, modalOpen])
 
@@ -74,9 +78,9 @@ export default function AlarmModal() {
       ? { customSoundDataUrl, customSoundName }
       : { customSoundDataUrl: null, customSoundName: null }
     if (editingAlarm) {
-      dispatch(updateAlarm({ ...editingAlarm, time, label, repeat, sound, ...soundData }))
+      dispatch(updateAlarm({ ...editingAlarm, time, label, repeat, sound, snoozeDuration, ...soundData }))
     } else {
-      dispatch(addAlarm({ time, label, repeat, sound, enabled: true, ...soundData }))
+      dispatch(addAlarm({ time, label, repeat, sound, snoozeDuration, enabled: true, ...soundData }))
     }
     dispatch(closeModal())
   }
@@ -211,6 +215,30 @@ export default function AlarmModal() {
           {repeat.length === 0 && (
             <p className="text-xs" style={{ color: '#3D3A6B' }}>Tidak berulang — berbunyi sekali</p>
           )}
+        </div>
+
+        {/* Snooze Duration */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
+            Durasi Tunda
+          </label>
+          <div className="flex gap-1.5 flex-wrap">
+            {SNOOZE_OPTIONS.map(min => (
+              <button
+                key={min}
+                onClick={() => setSnoozeDuration(min)}
+                className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                style={{
+                  background: snoozeDuration === min ? '#3D3A6B' : '#0D0D14',
+                  color: snoozeDuration === min ? '#A89FF7' : '#6B6A7D',
+                  border: `1px solid ${snoozeDuration === min ? '#7C6FF7' : '#2A2A3A'}`,
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                {min}m
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Sound */}

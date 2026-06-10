@@ -3,11 +3,13 @@ import { Plus, AlarmCheck } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from './hooks'
 import { openModal, tickTime, triggerAlarm, undoDelete, clearRecentlyDeleted } from './store/alarmSlice'
 import { getCurrentTime, shouldAlarmRing, getMinutesUntil, formatMinutes } from './utils'
-import AnalogClock from './components/AnalogClock'
-import DigitalClock from './components/DigitalClock'
-import AlarmCard from './components/AlarmCard'
-import AlarmModal from './components/AlarmModal'
-import RingingOverlay from './components/RingingOverlay'
+import loadable from '@loadable/component'
+
+const AnalogClock = loadable(() => import('./components/AnalogClock'))
+const DigitalClock = loadable(() => import('./components/DigitalClock'))
+const AlarmCard = loadable(() => import('./components/AlarmCard'))
+const AlarmModal = loadable(() => import('./components/AlarmModal'))
+const RingingOverlay = loadable(() => import('./components/RingingOverlay'))
 
 export default function App() {
   const dispatch = useAppDispatch()

@@ -15,12 +15,12 @@ export function getCurrentSeconds(): number {
   return new Date().getSeconds()
 }
 
-export function formatTime(time: string): { hours: string; minutes: string; period: string } {
+export function formatTime(time: string): { hours: string; minutes: string } {
   const [h, m] = time.split(':').map(Number)
-  const period = h >= 12 ? 'PM' : 'AM'
-  const hours = String(h % 12 || 12).padStart(2, '0')
-  const minutes = String(m).padStart(2, '0')
-  return { hours, minutes, period }
+  return {
+    hours: String(h).padStart(2, '0'),
+    minutes: String(m).padStart(2, '0'),
+  }
 }
 
 export function getNextAlarmTime(time: string, repeat: RepeatDay[]): string {

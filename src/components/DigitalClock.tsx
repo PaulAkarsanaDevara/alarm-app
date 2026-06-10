@@ -8,11 +8,9 @@ export default function DigitalClock() {
     return () => clearInterval(t)
   }, [])
 
-  const h = time.getHours()
+  const hour24 = String(time.getHours()).padStart(2, '0')
   const m = String(time.getMinutes()).padStart(2, '0')
   const s = String(time.getSeconds()).padStart(2, '0')
-  const period = h >= 12 ? 'PM' : 'AM'
-  const hour12 = String(h % 12 || 12).padStart(2, '0')
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -28,22 +26,14 @@ export default function DigitalClock() {
             color: '#F0EFF8',
           }}
         >
-          {hour12}:{m}
+          {hour24}:{m}
         </span>
-        <div className="flex flex-col items-start mb-1 ml-1">
-          <span
-            className="text-lg md:text-2xl font-semibold"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: '#7C6FF7' }}
-          >
-            {period}
-          </span>
-          <span
-            className="text-xs md:text-sm font-mono"
-            style={{ color: '#6B6A7D' }}
-          >
-            :{s}
-          </span>
-        </div>
+        <span
+          className="text-xs md:text-sm font-mono mb-1 ml-1"
+          style={{ color: '#6B6A7D' }}
+        >
+          :{s}
+        </span>
       </div>
       <p className="mt-2 text-sm md:text-base" style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}>
         {dateStr}

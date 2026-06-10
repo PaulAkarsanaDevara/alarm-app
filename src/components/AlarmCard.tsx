@@ -13,7 +13,7 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 export default function AlarmCard({ alarm }: AlarmCardProps) {
   const dispatch = useAppDispatch()
   useAppSelector(s => s.alarm.currentTime) // re-render on tick so countdown stays fresh
-  const { hours, minutes, period } = formatTime(alarm.time)
+  const { hours, minutes } = formatTime(alarm.time)
   const countdown = getCountdown(alarm.time, alarm.repeat)
 
   return (
@@ -38,12 +38,6 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
               }}
             >
               {hours}:{minutes}
-            </span>
-            <span
-              className="text-sm font-semibold mb-1"
-              style={{ color: alarm.enabled ? '#7C6FF7' : '#3D3A6B', fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {period}
             </span>
           </div>
 

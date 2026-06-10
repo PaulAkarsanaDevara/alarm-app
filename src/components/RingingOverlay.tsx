@@ -120,7 +120,7 @@ export default function RingingOverlay() {
 
   if (!activeAlarm) return null
 
-  const { hours, minutes, period } = formatTime(activeAlarm.time)
+  const { hours, minutes } = formatTime(activeAlarm.time)
 
   return (
     <div
@@ -167,7 +167,6 @@ export default function RingingOverlay() {
           style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F0EFF8' }}
         >
           {hours}:{minutes}
-          <span className="text-3xl ml-2" style={{ color: '#7C6FF7' }}>{period}</span>
         </div>
         {activeAlarm.label && (
           <p className="mt-2 text-lg" style={{ color: '#9896A8', fontFamily: 'Inter, sans-serif' }}>

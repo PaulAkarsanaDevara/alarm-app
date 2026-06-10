@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Upload } from 'lucide-react'
+import { X, Upload, Play, Square } from 'lucide-react'
 import type { RepeatDay, AlarmSound } from '../types'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { addAlarm, updateAlarm, closeModal } from '../store/alarmSlice'
 import { getSoundLabel } from '../utils'
+import { playSound, SOUND_PREVIEW_DURATION } from '../utils/audio'
 
 const DAYS: RepeatDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const BUILT_IN_SOUNDS: AlarmSound[] = ['gentle', 'classic', 'digital', 'birds']
@@ -22,6 +23,46 @@ export default function AlarmModal() {
   const [customSoundDataUrl, setCustomSoundDataUrl] = useState<string | null>(null)
   const [customSoundName, setCustomSoundName] = useState<string | null>(null)
   const [snoozeDuration, setSnoozeDuration] = useState(5)
+
+  const [previewingSound, setPreviewingSound] = useState<AlarmSound | null>(null)
+  const previewCtxRef = useRef<AudioContext | null>(null)
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null)
+  const previewTimerRef = useRef<number | null>(null)
+
+  function stopPreview() {
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
+    if (previewCtxRef.current) { previewCtxRef.current.close(); previewCtxRef.current = null }
+    if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null }
+    setPreviewingSound(null)
+  }
+
+  function handlePreview(s: AlarmSound) {
+    if (previewingSound === s) { stopPreview(); return }
+    stopPreview()
+    if (s === 'custom') {
+      if (!customSoundDataUrl) return
+      const audio = new Audio(customSoundDataUrl)
+      audio.volume = 0.5
+      previewAudioRef.current = audio
+      audio.play()
+      setPreviewingSound('custom')
+      previewTimerRef.current = window.setTimeout(stopPreview, SOUND_PREVIEW_DURATION.custom)
+    } else {
+      const ctx = new AudioContext()
+      previewCtxRef.current = ctx
+      playSound(ctx, s, ctx.destination)
+      setPreviewingSound(s)
+      previewTimerRef.current = window.setTimeout(() => {
+        ctx.close()
+        previewCtxRef.current = null
+        setPreviewingSound(null)
+      }, SOUND_PREVIEW_DURATION[s])
+    }
+  }
+
+  useEffect(() => {
+    if (!modalOpen) stopPreview()
+  }, [modalOpen])
 
   useEffect(() => {
     if (editingAlarm) {
@@ -248,19 +289,35 @@ export default function AlarmModal() {
           </label>
           <div className="grid grid-cols-2 gap-2">
             {BUILT_IN_SOUNDS.map(s => (
-              <button
+              <div
                 key={s}
-                onClick={() => setSound(s)}
-                className="px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-all duration-200"
-                style={{
-                  background: sound === s ? '#3D3A6B' : '#0D0D14',
-                  color: sound === s ? '#A89FF7' : '#6B6A7D',
-                  border: `1px solid ${sound === s ? '#7C6FF7' : '#2A2A3A'}`,
-                  fontFamily: 'Inter, sans-serif',
-                }}
+                className="flex items-stretch rounded-xl overflow-hidden"
+                style={{ border: `1px solid ${sound === s ? '#7C6FF7' : '#2A2A3A'}` }}
               >
-                {getSoundLabel(s)}
-              </button>
+                <button
+                  onClick={() => setSound(s)}
+                  className="flex-1 px-3 py-2.5 text-sm font-medium text-left transition-all duration-200"
+                  style={{
+                    background: sound === s ? '#3D3A6B' : '#0D0D14',
+                    color: sound === s ? '#A89FF7' : '#6B6A7D',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  {getSoundLabel(s)}
+                </button>
+                <button
+                  onClick={() => handlePreview(s)}
+                  className="flex items-center justify-center px-2.5 transition-all duration-200"
+                  style={{
+                    background: sound === s ? '#3D3A6B' : '#0D0D14',
+                    borderLeft: `1px solid ${sound === s ? '#7C6FF760' : '#2A2A3A'}`,
+                    color: previewingSound === s ? '#7C6FF7' : '#4A4860',
+                  }}
+                  title={previewingSound === s ? 'Stop' : 'Preview'}
+                >
+                  {previewingSound === s ? <Square size={11} /> : <Play size={11} />}
+                </button>
+              </div>
             ))}
           </div>
 
@@ -274,15 +331,23 @@ export default function AlarmModal() {
           />
           {sound === 'custom' && customSoundName ? (
             <div
-              className="flex items-center justify-between rounded-xl px-3 py-2.5"
+              className="flex items-center gap-2 rounded-xl px-3 py-2.5"
               style={{ background: '#3D3A6B', border: '1px solid #7C6FF7' }}
             >
-              <span className="text-sm font-medium truncate" style={{ color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}>
+              <span className="text-sm font-medium truncate flex-1" style={{ color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}>
                 📁 {customSoundName}
               </span>
               <button
+                onClick={() => handlePreview('custom')}
+                className="shrink-0 p-1 rounded-lg transition-colors"
+                style={{ color: previewingSound === 'custom' ? '#7C6FF7' : '#6B6A7D' }}
+                title={previewingSound === 'custom' ? 'Stop' : 'Preview'}
+              >
+                {previewingSound === 'custom' ? <Square size={12} /> : <Play size={12} />}
+              </button>
+              <button
                 onClick={clearCustomSound}
-                className="ml-2 shrink-0"
+                className="shrink-0 p-1 rounded-lg transition-colors"
                 style={{ color: '#6B6A7D' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
                 onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}

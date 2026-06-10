@@ -58,29 +58,8 @@ export default function App() {
       <AlarmModal />
 
       <div className="max-w-lg mx-auto px-4 pb-28">
-        {/* Header */}
-        <div className="pt-8 pb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlarmCheck size={22} style={{ color: '#7C6FF7' }} />
-            <span
-              className="text-base font-bold tracking-tight"
-              style={{ color: '#F0EFF8', fontFamily: 'Inter, sans-serif' }}
-            >
-              Alarm
-            </span>
-          </div>
-          {enabledCount > 0 && (
-            <span
-              className="text-xs px-2.5 py-1 rounded-full font-semibold"
-              style={{ background: '#3D3A6B', color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}
-            >
-              {enabledCount} aktif
-            </span>
-          )}
-        </div>
-
         {/* Clock */}
-        <div className="mt-6 flex flex-col items-center gap-4">
+        <div className="mt-10 flex flex-col items-center gap-4">
           <AnalogClock ringing={hasRinging} />
           <DigitalClock />
         </div>

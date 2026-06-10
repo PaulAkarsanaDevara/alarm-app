@@ -200,7 +200,7 @@ export default function RingingOverlay() {
         <div className="flex items-center gap-2">
           <Moon size={14} style={{ color: '#6B6A7D' }} />
           <span className="text-xs font-semibold uppercase tracking-wider mr-1" style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}>
-            Snooze
+            Tunda
           </span>
           {[5, 10, 15].map(min => (
             <button
@@ -233,7 +233,7 @@ export default function RingingOverlay() {
           }}
         >
           <BellOff size={18} />
-          Dismiss
+          Matikan
         </button>
       </div>
     </div>

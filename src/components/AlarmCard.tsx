@@ -43,7 +43,7 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
 
           {/* Label */}
           <p className="text-sm mt-1 truncate" style={{ color: '#9896A8' }}>
-            {alarm.label || 'No label'}
+            {alarm.label || 'Tanpa label'}
           </p>
 
           {/* Repeat days */}
@@ -69,7 +69,7 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
           {/* Next alarm & sound */}
           {alarm.enabled && (
             <p className="text-xs mt-2" style={{ color: '#6B6A7D' }}>
-              {countdown ? `Rings in ${countdown}` : ''} · {getSoundLabel(alarm.sound)}
+              {countdown ? `Berbunyi dalam ${countdown}` : ''} · {getSoundLabel(alarm.sound)}
             </p>
           )}
 
@@ -79,7 +79,7 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
               className="inline-block text-xs mt-1 px-2 py-0.5 rounded-full"
               style={{ background: '#2A2040', color: '#A89FF7' }}
             >
-              Snoozed · {Math.ceil((alarm.snoozedUntil - Date.now()) / 60000)}m left
+              Ditunda · {Math.ceil((alarm.snoozedUntil - Date.now()) / 60000)}m lagi
             </span>
           )}
         </div>

@@ -56,7 +56,7 @@ export default function App() {
               className="text-xs px-2.5 py-1 rounded-full font-semibold"
               style={{ background: '#3D3A6B', color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}
             >
-              {enabledCount} active
+              {enabledCount} aktif
             </span>
           )}
         </div>
@@ -74,7 +74,7 @@ export default function App() {
               className="text-sm font-semibold uppercase tracking-wider"
               style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}
             >
-              {alarms.length > 0 ? `${alarms.length} Alarm${alarms.length > 1 ? 's' : ''}` : 'No Alarms'}
+              {alarms.length > 0 ? `${alarms.length} Alarm` : 'Tidak Ada Alarm'}
             </h2>
           </div>
 
@@ -85,8 +85,8 @@ export default function App() {
             >
               <AlarmCheck size={32} style={{ color: '#3D3A6B' }} />
               <p className="text-sm" style={{ color: '#3D3A6B', fontFamily: 'Inter, sans-serif' }}>
-                No alarms set yet.<br />
-                Tap + to create one.
+                Belum ada alarm.<br />
+                Ketuk + untuk membuat satu.
               </p>
             </div>
           ) : (
@@ -112,7 +112,7 @@ export default function App() {
           }}
         >
           <Plus size={20} />
-          New Alarm
+          Alarm Baru
         </button>
       </div>
     </div>

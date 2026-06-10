@@ -43,7 +43,7 @@ export default function AlarmModal() {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > MAX_FILE_BYTES) {
-      alert('File too large. Please upload an audio file under 2 MB.')
+      alert('File terlalu besar. Harap upload audio di bawah 2 MB.')
       return
     }
     const reader = new FileReader()
@@ -96,7 +96,7 @@ export default function AlarmModal() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold" style={{ color: '#F0EFF8', fontFamily: 'Inter, sans-serif' }}>
-            {editingAlarm ? 'Edit Alarm' : 'New Alarm'}
+            {editingAlarm ? 'Edit Alarm' : 'Alarm Baru'}
           </h2>
           <button
             onClick={() => dispatch(closeModal())}
@@ -112,7 +112,7 @@ export default function AlarmModal() {
         {/* Time Picker */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
-            Time
+            Waktu
           </label>
           <div
             className="flex items-center justify-center rounded-2xl px-4 py-4 gap-1"
@@ -160,7 +160,7 @@ export default function AlarmModal() {
           </label>
           <input
             type="text"
-            placeholder="e.g. Wake up, Morning run…"
+            placeholder="mis. Bangun, Lari pagi…"
             value={label}
             onChange={e => setLabel(e.target.value)}
             maxLength={40}
@@ -180,7 +180,7 @@ export default function AlarmModal() {
         {/* Repeat */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
-            Repeat
+            Ulangi
           </label>
           <div className="flex gap-1.5 flex-wrap">
             {DAYS.map(day => (
@@ -204,19 +204,19 @@ export default function AlarmModal() {
                 className="px-3 py-1.5 rounded-xl text-sm transition-colors"
                 style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}
               >
-                Clear
+                Hapus
               </button>
             )}
           </div>
           {repeat.length === 0 && (
-            <p className="text-xs" style={{ color: '#3D3A6B' }}>No repeat — rings once</p>
+            <p className="text-xs" style={{ color: '#3D3A6B' }}>Tidak berulang — berbunyi sekali</p>
           )}
         </div>
 
         {/* Sound */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
-            Sound
+            Suara
           </label>
           <div className="grid grid-cols-2 gap-2">
             {BUILT_IN_SOUNDS.map(s => (
@@ -282,7 +282,7 @@ export default function AlarmModal() {
               }}
             >
               <Upload size={14} />
-              Upload custom sound (max 2 MB)
+              Upload suara kustom (maks 2 MB)
             </button>
           )}
         </div>
@@ -299,7 +299,7 @@ export default function AlarmModal() {
           onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
         >
-          {editingAlarm ? 'Save Changes' : 'Set Alarm'}
+          {editingAlarm ? 'Simpan Perubahan' : 'Buat Alarm'}
         </button>
       </div>
     </div>

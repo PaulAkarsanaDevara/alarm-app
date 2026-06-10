@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Plus, AlarmCheck, Bell, BellOff } from 'lucide-react'
+import { Plus, AlarmCheck, Bell, BellOff, Palette } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from './hooks'
 import { openModal, tickTime, triggerAlarm, undoDelete, clearRecentlyDeleted } from './store/alarmSlice'
 import { getCurrentTime, shouldAlarmRing, getMinutesUntil, formatMinutes } from './utils'
 import { requestNotificationPermission, showAlarmNotification, getNotificationPermission } from './utils/notifications'
 import loadable from '@loadable/component'
 
-const AnalogClock = loadable(() => import('./components/AnalogClock'))
-const DigitalClock = loadable(() => import('./components/DigitalClock'))
-const AlarmCard = loadable(() => import('./components/AlarmCard'))
-const AlarmModal = loadable(() => import('./components/AlarmModal'))
+const AnalogClock    = loadable(() => import('./components/AnalogClock'))
+const DigitalClock   = loadable(() => import('./components/DigitalClock'))
+const AlarmCard      = loadable(() => import('./components/AlarmCard'))
+const AlarmModal     = loadable(() => import('./components/AlarmModal'))
 const RingingOverlay = loadable(() => import('./components/RingingOverlay'))
+const ThemePanel     = loadable(() => import('./components/ThemePanel'))
 
 export default function App() {
   const dispatch = useAppDispatch()
@@ -24,6 +25,7 @@ export default function App() {
     () => getNotificationPermission()
   )
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [themePanelOpen, setThemePanelOpen] = useState(false)
 
   const [clockView, setClockView] = useState<'analog' | 'digital'>(
     () => (localStorage.getItem('alarm-clock-view') as 'analog' | 'digital') ?? 'analog'
@@ -57,7 +59,6 @@ export default function App() {
     return () => clearInterval(t)
   }, [dispatch])
 
-  // Re-check immediately when tab becomes visible (browser throttles background timers)
   useEffect(() => {
     function onVisible() {
       if (document.visibilityState === 'visible') checkAlarms()
@@ -87,23 +88,40 @@ export default function App() {
   const showNotifBanner = !bannerDismissed && notifPermission !== null && notifPermission !== 'granted'
 
   return (
-    <div className="min-h-screen" style={{ background: '#0D0D14' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <RingingOverlay />
       <AlarmModal />
 
+      {/* Click-outside backdrop for theme panel */}
+      {themePanelOpen && (
+        <div className="fixed inset-0 z-30" onClick={() => setThemePanelOpen(false)} />
+      )}
+
       <div className="max-w-lg mx-auto px-4 pb-28">
+        {/* Top bar: theme toggle */}
+        <div className="relative flex justify-end pt-4">
+          <button
+            onClick={() => setThemePanelOpen(p => !p)}
+            className="p-2 rounded-xl transition-colors"
+            style={{ color: themePanelOpen ? 'var(--accent)' : 'var(--muted)' }}
+            aria-label="Tema"
+          >
+            <Palette size={18} />
+          </button>
+          {themePanelOpen && <ThemePanel />}
+        </div>
+
         {/* Notification permission banner */}
         {showNotifBanner && (
           <div
-            className="mt-4 flex items-center gap-3 px-4 py-3 rounded-2xl"
-            style={{ background: '#16161F', border: '1px solid #2A2A3A' }}
+            className="mt-2 flex items-center gap-3 px-4 py-3 rounded-2xl"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
-            {notifPermission === 'denied' ? (
-              <BellOff size={16} style={{ color: '#6B6A7D', flexShrink: 0 }} />
-            ) : (
-              <Bell size={16} style={{ color: '#7C6FF7', flexShrink: 0 }} />
-            )}
-            <p className="text-sm flex-1" style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}>
+            {notifPermission === 'denied'
+              ? <BellOff size={16} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+              : <Bell size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+            }
+            <p className="text-sm flex-1" style={{ color: 'var(--muted)', fontFamily: 'Inter, sans-serif' }}>
               {notifPermission === 'denied'
                 ? 'Notifikasi diblokir. Aktifkan melalui pengaturan browser.'
                 : 'Izinkan notifikasi agar alarm berbunyi di background.'}
@@ -112,7 +130,7 @@ export default function App() {
               <button
                 onClick={handleAllowNotifications}
                 className="text-xs font-semibold px-3 py-1.5 rounded-xl flex-shrink-0"
-                style={{ background: '#3D3A6B', color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}
+                style={{ background: 'var(--accent-bg)', color: 'var(--accent-soft)', fontFamily: 'Inter, sans-serif' }}
               >
                 Izinkan
               </button>
@@ -120,7 +138,7 @@ export default function App() {
             <button
               onClick={() => setBannerDismissed(true)}
               className="text-xs px-2 py-1 rounded-lg flex-shrink-0"
-              style={{ color: '#3D3A6B', fontFamily: 'Inter, sans-serif' }}
+              style={{ color: 'var(--muted-3)', fontFamily: 'Inter, sans-serif' }}
             >
               ✕
             </button>
@@ -128,13 +146,13 @@ export default function App() {
         )}
 
         {/* Clock */}
-        <div className="mt-10 flex flex-col items-center gap-4">
+        <div className="mt-8 flex flex-col items-center gap-4">
           {clockView === 'analog' ? <AnalogClock ringing={hasRinging} /> : <DigitalClock />}
 
           {/* Clock view toggle */}
           <div
             className="flex items-center p-1 rounded-2xl"
-            style={{ background: '#16161F', border: '1px solid #2A2A3A' }}
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
             {(['analog', 'digital'] as const).map(view => (
               <button
@@ -143,8 +161,8 @@ export default function App() {
                 className="px-5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200"
                 style={{
                   fontFamily: 'Inter, sans-serif',
-                  background: clockView === view ? '#3D3A6B' : 'transparent',
-                  color: clockView === view ? '#A89FF7' : '#4A4860',
+                  background: clockView === view ? 'var(--accent-bg)' : 'transparent',
+                  color: clockView === view ? 'var(--accent-soft)' : 'var(--muted-2)',
                 }}
               >
                 {view === 'analog' ? 'Analog' : 'Digital'}
@@ -157,13 +175,13 @@ export default function App() {
         {nextAlarmEntry && !hasRinging && (
           <div
             className="mt-5 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl"
-            style={{ background: '#16161F', border: '1px solid #2A2A3A' }}
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
-            <span className="text-sm" style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}>
+            <span className="text-sm" style={{ color: 'var(--muted)', fontFamily: 'Inter, sans-serif' }}>
               Alarm berikutnya
               {nextAlarmEntry.alarm.label ? ` "${nextAlarmEntry.alarm.label}"` : ''} dalam
             </span>
-            <span className="text-sm font-semibold" style={{ color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}>
+            <span className="text-sm font-semibold" style={{ color: 'var(--accent-soft)', fontFamily: 'Inter, sans-serif' }}>
               {formatMinutes(nextAlarmEntry.mins)}
             </span>
           </div>
@@ -174,7 +192,7 @@ export default function App() {
           <div className="flex items-center justify-between mb-4">
             <h2
               className="text-sm font-semibold uppercase tracking-wider"
-              style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}
+              style={{ color: 'var(--muted)', fontFamily: 'Inter, sans-serif' }}
             >
               {alarms.length > 0 ? `${alarms.length} Alarm` : 'Tidak Ada Alarm'}
             </h2>
@@ -183,10 +201,10 @@ export default function App() {
           {alarms.length === 0 ? (
             <div
               className="rounded-2xl p-10 flex flex-col items-center gap-3 text-center"
-              style={{ background: '#16161F', border: '1px dashed #2A2A3A' }}
+              style={{ background: 'var(--surface)', border: '1px dashed var(--border)' }}
             >
-              <AlarmCheck size={32} style={{ color: '#3D3A6B' }} />
-              <p className="text-sm" style={{ color: '#3D3A6B', fontFamily: 'Inter, sans-serif' }}>
+              <AlarmCheck size={32} style={{ color: 'var(--muted-3)' }} />
+              <p className="text-sm" style={{ color: 'var(--muted-3)', fontFamily: 'Inter, sans-serif' }}>
                 Belum ada alarm.<br />
                 Ketuk + untuk membuat satu.
               </p>
@@ -201,10 +219,10 @@ export default function App() {
               {enabledCount === 0 && (
                 <div
                   className="mt-4 flex items-center gap-3 px-4 py-3 rounded-2xl"
-                  style={{ background: '#16161F', border: '1px solid #1A1A28' }}
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border-muted)' }}
                 >
-                  <AlarmCheck size={16} style={{ color: '#3D3A6B', flexShrink: 0 }} />
-                  <p className="text-sm" style={{ color: '#3D3A6B', fontFamily: 'Inter, sans-serif' }}>
+                  <AlarmCheck size={16} style={{ color: 'var(--muted-3)', flexShrink: 0 }} />
+                  <p className="text-sm" style={{ color: 'var(--muted-3)', fontFamily: 'Inter, sans-serif' }}>
                     Semua alarm dimatikan. Aktifkan salah satu untuk mulai.
                   </p>
                 </div>
@@ -223,13 +241,13 @@ export default function App() {
           <div
             className="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl"
             style={{
-              background: '#1E1D2E',
-              border: '1px solid #3D3A6B',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--accent-bg)',
               pointerEvents: 'auto',
               fontFamily: 'Inter, sans-serif',
             }}
           >
-            <span className="text-sm" style={{ color: '#9896A8' }}>
+            <span className="text-sm" style={{ color: 'var(--text-2)' }}>
               Alarm{recentlyDeleted.label ? ` "${recentlyDeleted.label}"` : ''} dihapus
             </span>
             <button
@@ -238,9 +256,9 @@ export default function App() {
                 dispatch(undoDelete())
               }}
               className="text-sm font-semibold px-3 py-1 rounded-xl transition-colors"
-              style={{ background: '#3D3A6B', color: '#A89FF7' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#4D4A8B')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#3D3A6B')}
+              style={{ background: 'var(--accent-bg)', color: 'var(--accent-soft)' }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
             >
               Batal
             </button>
@@ -254,10 +272,10 @@ export default function App() {
           onClick={() => dispatch(openModal(null))}
           className="flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold shadow-lg transition-all duration-200 active:scale-95"
           style={{
-            background: 'linear-gradient(135deg, #7C6FF7 0%, #5B52C4 100%)',
-            color: '#F0EFF8',
+            background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
+            color: 'white',
             fontFamily: 'Inter, sans-serif',
-            boxShadow: '0 8px 32px rgba(124,111,247,0.45)',
+            boxShadow: '0 8px 32px rgba(var(--accent-rgb),0.45)',
           }}
         >
           <Plus size={20} />

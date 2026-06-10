@@ -15,7 +15,7 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
   const dispatch = useAppDispatch()
   const [confirming, setConfirming] = useState(false)
   const [exiting, setExiting] = useState(false)
-  useAppSelector(s => s.alarm.currentTime) // re-render on tick so countdown stays fresh
+  useAppSelector(s => s.alarm.currentTime)
 
   function handleDelete() {
     setExiting(true)
@@ -28,10 +28,10 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
     <div
       className={`rounded-2xl p-4 md:p-5 transition-all duration-300 border ${exiting ? 'alarm-exit' : 'alarm-enter'}`}
       style={{
-        background: alarm.enabled ? '#16161F' : '#111119',
-        borderColor: alarm.ringing ? '#7C6FF7' : alarm.enabled ? '#2A2A3A' : '#1A1A28',
+        background: alarm.enabled ? 'var(--surface)' : 'var(--surface-dim)',
+        borderColor: alarm.ringing ? 'var(--accent)' : alarm.enabled ? 'var(--border)' : 'var(--border-muted)',
         opacity: alarm.enabled ? 1 : 0.6,
-        boxShadow: alarm.ringing ? '0 0 24px rgba(124,111,247,0.35)' : 'none',
+        boxShadow: alarm.ringing ? '0 0 24px rgba(var(--accent-rgb),0.35)' : 'none',
       }}
     >
       <div className="flex items-center justify-between gap-3">
@@ -42,19 +42,17 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
               className="text-3xl md:text-4xl font-bold leading-none"
               style={{
                 fontFamily: "'JetBrains Mono', monospace",
-                color: alarm.enabled ? '#F0EFF8' : '#6B6A7D',
+                color: alarm.enabled ? 'var(--text)' : 'var(--muted)',
               }}
             >
               {hours}:{minutes}
             </span>
           </div>
 
-          {/* Label */}
-          <p className="text-sm mt-1 truncate" style={{ color: '#9896A8' }}>
+          <p className="text-sm mt-1 truncate" style={{ color: 'var(--text-2)' }}>
             {alarm.label || 'Tanpa label'}
           </p>
 
-          {/* Repeat days */}
           <div className="flex gap-1 mt-2 flex-wrap">
             {DAY_LABELS.map(day => {
               const active = alarm.repeat.includes(day as Alarm['repeat'][number])
@@ -63,8 +61,8 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
                   key={day}
                   className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
                   style={{
-                    background: active ? '#3D3A6B' : '#1A1A28',
-                    color: active ? '#A89FF7' : '#3D3A6B',
+                    background: active ? 'var(--accent-bg)' : 'var(--border-muted)',
+                    color: active ? 'var(--accent-soft)' : 'var(--muted-3)',
                     fontFamily: 'Inter, sans-serif',
                   }}
                 >
@@ -74,18 +72,16 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
             })}
           </div>
 
-          {/* Next alarm & sound */}
           {alarm.enabled && (
-            <p className="text-xs mt-2" style={{ color: '#6B6A7D' }}>
+            <p className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
               {countdown ? `Berbunyi dalam ${countdown}` : ''} · {getSoundLabel(alarm.sound)}
             </p>
           )}
 
-          {/* Snoozed badge */}
           {alarm.snoozedUntil && alarm.snoozedUntil > Date.now() && (
             <span
               className="inline-block text-xs mt-1 px-2 py-0.5 rounded-full"
-              style={{ background: '#2A2040', color: '#A89FF7' }}
+              style={{ background: 'var(--accent-bg)', color: 'var(--accent-soft)' }}
             >
               Ditunda · {Math.ceil((alarm.snoozedUntil - Date.now()) / 60000)}m lagi
             </span>
@@ -94,37 +90,30 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
 
         {/* Controls */}
         <div className="flex flex-col items-end gap-3">
-          {/* Toggle */}
           <button
             onClick={() => dispatch(toggleAlarm(alarm.id))}
             className="relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none"
-            style={{
-              background: alarm.enabled ? '#7C6FF7' : '#2A2A3A',
-            }}
+            style={{ background: alarm.enabled ? 'var(--accent)' : 'var(--border)' }}
             aria-label={alarm.enabled ? 'Disable alarm' : 'Enable alarm'}
           >
             <span
               className="absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300"
-              style={{
-                background: '#F0EFF8',
-                left: alarm.enabled ? '26px' : '2px',
-              }}
+              style={{ background: 'var(--text)', left: alarm.enabled ? '26px' : '2px' }}
             />
           </button>
 
-          {/* Edit & Delete */}
           {confirming ? (
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setConfirming(false)}
-                className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
-                style={{ background: '#1A1A28', color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold"
+                style={{ background: 'var(--border-muted)', color: 'var(--muted)', fontFamily: 'Inter, sans-serif' }}
               >
                 Batal
               </button>
               <button
                 onClick={handleDelete}
-                className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold"
                 style={{ background: '#3B1F1F', color: '#f87171', fontFamily: 'Inter, sans-serif' }}
               >
                 Hapus
@@ -135,9 +124,9 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
               <button
                 onClick={() => dispatch(openModal(alarm))}
                 className="p-1.5 rounded-lg transition-colors"
-                style={{ color: '#6B6A7D' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#A89FF7')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}
+                style={{ color: 'var(--muted)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent-soft)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
                 aria-label="Edit alarm"
               >
                 <Edit2 size={15} />
@@ -145,9 +134,9 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
               <button
                 onClick={() => setConfirming(true)}
                 className="p-1.5 rounded-lg transition-colors"
-                style={{ color: '#6B6A7D' }}
+                style={{ color: 'var(--muted)' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
                 aria-label="Delete alarm"
               >
                 <Trash2 size={15} />

@@ -17,10 +17,10 @@ const SOUND_INTERVAL: Record<AlarmSound, number> = {
 export default function RingingOverlay() {
   const dispatch = useAppDispatch()
   const { alarms, activeAlarmId } = useAppSelector(s => s.alarm)
-  const audioRef = useRef<AudioContext | null>(null)
-  const intervalRef = useRef<number | null>(null)
-  const audioElementRef = useRef<HTMLAudioElement | null>(null)
-  const rampRef = useRef<number | null>(null)
+  const audioRef      = useRef<AudioContext | null>(null)
+  const intervalRef   = useRef<number | null>(null)
+  const audioElRef    = useRef<HTMLAudioElement | null>(null)
+  const rampRef       = useRef<number | null>(null)
 
   const activeAlarm = alarms.find(a => a.id === activeAlarmId && a.ringing)
 
@@ -28,19 +28,17 @@ export default function RingingOverlay() {
     if (!activeAlarm) {
       clearInterval(intervalRef.current ?? undefined)
       clearInterval(rampRef.current ?? undefined)
-      if (audioRef.current) { audioRef.current.close(); audioRef.current = null }
-      if (audioElementRef.current) { audioElementRef.current.pause(); audioElementRef.current = null }
+      if (audioRef.current)   { audioRef.current.close();     audioRef.current = null }
+      if (audioElRef.current) { audioElRef.current.pause();   audioElRef.current = null }
       return
     }
 
     if (activeAlarm.sound === 'custom' && activeAlarm.customSoundDataUrl) {
-      // HTML5 Audio path for user-uploaded sounds
       const audio = new Audio(activeAlarm.customSoundDataUrl)
       audio.loop = true
       audio.volume = 0.05
-      audioElementRef.current = audio
+      audioElRef.current = audio
       audio.play()
-
       const start = Date.now()
       rampRef.current = window.setInterval(() => {
         const t = (Date.now() - start) / 30000
@@ -48,25 +46,22 @@ export default function RingingOverlay() {
         if (audio.volume >= 1.0) clearInterval(rampRef.current ?? undefined)
       }, 500)
     } else {
-      // Web Audio API path for built-in sounds
       const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
       audioRef.current = ctx
-
-      const masterGain = ctx.createGain()
-      masterGain.connect(ctx.destination)
-      masterGain.gain.setValueAtTime(0.05, ctx.currentTime)
-      masterGain.gain.exponentialRampToValueAtTime(1.0, ctx.currentTime + 30)
-
+      const master = ctx.createGain()
+      master.connect(ctx.destination)
+      master.gain.setValueAtTime(0.05, ctx.currentTime)
+      master.gain.exponentialRampToValueAtTime(1.0, ctx.currentTime + 30)
       const sound = activeAlarm.sound
-      playSound(ctx, sound, masterGain)
-      intervalRef.current = window.setInterval(() => playSound(ctx, sound, masterGain), SOUND_INTERVAL[sound])
+      playSound(ctx, sound, master)
+      intervalRef.current = window.setInterval(() => playSound(ctx, sound, master), SOUND_INTERVAL[sound])
     }
 
     return () => {
       clearInterval(intervalRef.current ?? undefined)
       clearInterval(rampRef.current ?? undefined)
-      if (audioRef.current) { audioRef.current.close(); audioRef.current = null }
-      if (audioElementRef.current) { audioElementRef.current.pause(); audioElementRef.current = null }
+      if (audioRef.current)   { audioRef.current.close();   audioRef.current = null }
+      if (audioElRef.current) { audioElRef.current.pause(); audioElRef.current = null }
     }
   }, [activeAlarm?.id])
 
@@ -78,17 +73,17 @@ export default function RingingOverlay() {
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8"
       style={{
-        background: 'radial-gradient(ellipse at center, #1A1530 0%, #0D0D14 60%)',
+        background: 'radial-gradient(ellipse at center, var(--surface-2) 0%, var(--bg) 60%)',
         backdropFilter: 'blur(4px)',
       }}
     >
-      {/* Pulsing ring */}
+      {/* Pulsing rings */}
       <div className="relative flex items-center justify-center">
         <div
           className="absolute rounded-full"
           style={{
             width: 200, height: 200,
-            background: 'rgba(124,111,247,0.15)',
+            background: 'rgba(var(--accent-rgb),0.15)',
             animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite',
           }}
         />
@@ -96,7 +91,7 @@ export default function RingingOverlay() {
           className="absolute rounded-full"
           style={{
             width: 160, height: 160,
-            background: 'rgba(124,111,247,0.2)',
+            background: 'rgba(var(--accent-rgb),0.2)',
             animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite 0.4s',
           }}
         />
@@ -104,11 +99,11 @@ export default function RingingOverlay() {
           className="relative flex items-center justify-center rounded-full"
           style={{
             width: 110, height: 110,
-            background: 'linear-gradient(135deg, #7C6FF7 0%, #5B52C4 100%)',
-            boxShadow: '0 0 40px rgba(124,111,247,0.6)',
+            background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
+            boxShadow: '0 0 40px rgba(var(--accent-rgb),0.6)',
           }}
         >
-          <AlarmClock size={48} color="#F0EFF8" />
+          <AlarmClock size={48} color="white" />
         </div>
       </div>
 
@@ -116,12 +111,12 @@ export default function RingingOverlay() {
       <div className="text-center">
         <div
           className="text-7xl font-bold"
-          style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F0EFF8' }}
+          style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--text)' }}
         >
           {hours}:{minutes}
         </div>
         {activeAlarm.label && (
-          <p className="mt-2 text-lg" style={{ color: '#9896A8', fontFamily: 'Inter, sans-serif' }}>
+          <p className="mt-2 text-lg" style={{ color: 'var(--text-2)', fontFamily: 'Inter, sans-serif' }}>
             {activeAlarm.label}
           </p>
         )}
@@ -129,32 +124,30 @@ export default function RingingOverlay() {
 
       {/* Actions */}
       <div className="flex flex-col items-center gap-3 mt-4">
-        {/* Snooze */}
         <button
           onClick={() => dispatch(snoozeAlarm({ id: activeAlarm.id, minutes: activeAlarm.snoozeDuration ?? 5 }))}
           className="flex items-center gap-2 px-8 py-3 rounded-2xl font-semibold transition-all active:scale-95"
           style={{
-            background: '#1E1D2E',
-            color: '#A89FF7',
-            border: '1px solid #3D3A6B',
+            background: 'var(--surface)',
+            color: 'var(--accent-soft)',
+            border: '1px solid var(--accent-bg)',
             fontFamily: 'Inter, sans-serif',
           }}
-          onMouseEnter={e => (e.currentTarget.style.borderColor = '#7C6FF7')}
-          onMouseLeave={e => (e.currentTarget.style.borderColor = '#3D3A6B')}
+          onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+          onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--accent-bg)')}
         >
           <Moon size={16} />
           Tunda {activeAlarm.snoozeDuration ?? 5} menit
         </button>
 
-        {/* Dismiss */}
         <button
           onClick={() => dispatch(dismissAlarm(activeAlarm.id))}
           className="flex items-center gap-2 px-10 py-3.5 rounded-2xl font-semibold transition-all active:scale-95"
           style={{
-            background: 'linear-gradient(135deg, #7C6FF7 0%, #5B52C4 100%)',
-            color: '#F0EFF8',
+            background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
+            color: 'white',
             fontFamily: 'Inter, sans-serif',
-            boxShadow: '0 4px 20px rgba(124,111,247,0.4)',
+            boxShadow: '0 4px 20px rgba(var(--accent-rgb),0.4)',
           }}
         >
           <BellOff size={18} />

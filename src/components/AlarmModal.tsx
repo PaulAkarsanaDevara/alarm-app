@@ -9,7 +9,7 @@ import { playSound, SOUND_PREVIEW_DURATION } from '../utils/audio'
 const DAYS: RepeatDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const BUILT_IN_SOUNDS: AlarmSound[] = ['gentle', 'classic', 'digital', 'birds']
 const SNOOZE_OPTIONS = [1, 5, 10, 15, 20, 30]
-const MAX_FILE_BYTES = 2 * 1024 * 1024 // 2 MB
+const MAX_FILE_BYTES = 2 * 1024 * 1024
 
 export default function AlarmModal() {
   const dispatch = useAppDispatch()
@@ -25,13 +25,13 @@ export default function AlarmModal() {
   const [snoozeDuration, setSnoozeDuration] = useState(5)
 
   const [previewingSound, setPreviewingSound] = useState<AlarmSound | null>(null)
-  const previewCtxRef = useRef<AudioContext | null>(null)
+  const previewCtxRef   = useRef<AudioContext | null>(null)
   const previewAudioRef = useRef<HTMLAudioElement | null>(null)
   const previewTimerRef = useRef<number | null>(null)
 
   function stopPreview() {
     if (previewTimerRef.current) clearTimeout(previewTimerRef.current)
-    if (previewCtxRef.current) { previewCtxRef.current.close(); previewCtxRef.current = null }
+    if (previewCtxRef.current)   { previewCtxRef.current.close(); previewCtxRef.current = null }
     if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null }
     setPreviewingSound(null)
   }
@@ -60,9 +60,7 @@ export default function AlarmModal() {
     }
   }
 
-  useEffect(() => {
-    if (!modalOpen) stopPreview()
-  }, [modalOpen])
+  useEffect(() => { if (!modalOpen) stopPreview() }, [modalOpen])
 
   useEffect(() => {
     if (editingAlarm) {
@@ -108,9 +106,7 @@ export default function AlarmModal() {
   }
 
   function toggleDay(day: RepeatDay) {
-    setRepeat(prev =>
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-    )
+    setRepeat(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])
   }
 
   function handleSave() {
@@ -136,37 +132,35 @@ export default function AlarmModal() {
     >
       <div
         className="w-full max-w-md rounded-3xl p-6 md:p-7 flex flex-col gap-5"
-        style={{ background: '#16161F', border: '1px solid #2A2A3A' }}
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold" style={{ color: '#F0EFF8', fontFamily: 'Inter, sans-serif' }}>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>
             {editingAlarm ? 'Edit Alarm' : 'Alarm Baru'}
           </h2>
           <button
             onClick={() => dispatch(closeModal())}
             className="p-1.5 rounded-full transition-colors"
-            style={{ color: '#6B6A7D' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#F0EFF8')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}
+            style={{ color: 'var(--muted)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Time Picker */}
+        {/* Time */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
+          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
             Waktu
           </label>
           <div
             className="flex items-center justify-center rounded-2xl px-4 py-4 gap-1"
-            style={{ background: '#0D0D14' }}
+            style={{ background: 'var(--bg)' }}
           >
             <input
-              type="number"
-              min={0}
-              max={23}
+              type="number" min={0} max={23}
               value={time.split(':')[0]}
               onChange={e => {
                 const h = Math.min(23, Math.max(0, parseInt(e.target.value) || 0))
@@ -174,18 +168,16 @@ export default function AlarmModal() {
               }}
               onFocus={e => e.target.select()}
               className="w-20 text-4xl text-center font-bold bg-transparent border-none outline-none"
-              style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F0EFF8' }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--text)' }}
             />
             <span
               className="text-4xl font-bold select-none"
-              style={{ fontFamily: "'JetBrains Mono', monospace", color: '#7C6FF7' }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--accent)' }}
             >
               :
             </span>
             <input
-              type="number"
-              min={0}
-              max={59}
+              type="number" min={0} max={59}
               value={time.split(':')[1]}
               onChange={e => {
                 const m = Math.min(59, Math.max(0, parseInt(e.target.value) || 0))
@@ -193,14 +185,14 @@ export default function AlarmModal() {
               }}
               onFocus={e => e.target.select()}
               className="w-20 text-4xl text-center font-bold bg-transparent border-none outline-none"
-              style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F0EFF8' }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--text)' }}
             />
           </div>
         </div>
 
         {/* Label */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
+          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
             Label
           </label>
           <input
@@ -211,20 +203,20 @@ export default function AlarmModal() {
             maxLength={40}
             className="w-full rounded-xl px-4 py-3 outline-none border"
             style={{
-              background: '#0D0D14',
-              color: '#F0EFF8',
-              borderColor: '#2A2A3A',
+              background: 'var(--bg)',
+              color: 'var(--text)',
+              borderColor: 'var(--border)',
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
             }}
-            onFocus={e => (e.currentTarget.style.borderColor = '#7C6FF7')}
-            onBlur={e => (e.currentTarget.style.borderColor = '#2A2A3A')}
+            onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+            onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
           />
         </div>
 
         {/* Repeat */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
+          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
             Ulangi
           </label>
           <div className="flex gap-1.5 flex-wrap">
@@ -234,9 +226,9 @@ export default function AlarmModal() {
                 onClick={() => toggleDay(day)}
                 className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200"
                 style={{
-                  background: repeat.includes(day) ? '#3D3A6B' : '#0D0D14',
-                  color: repeat.includes(day) ? '#A89FF7' : '#6B6A7D',
-                  border: `1px solid ${repeat.includes(day) ? '#7C6FF7' : '#2A2A3A'}`,
+                  background: repeat.includes(day) ? 'var(--accent-bg)' : 'var(--bg)',
+                  color: repeat.includes(day) ? 'var(--accent-soft)' : 'var(--muted)',
+                  border: `1px solid ${repeat.includes(day) ? 'var(--accent)' : 'var(--border)'}`,
                   fontFamily: 'Inter, sans-serif',
                 }}
               >
@@ -247,20 +239,20 @@ export default function AlarmModal() {
               <button
                 onClick={() => setRepeat([])}
                 className="px-3 py-1.5 rounded-xl text-sm transition-colors"
-                style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}
+                style={{ color: 'var(--muted)', fontFamily: 'Inter, sans-serif' }}
               >
                 Hapus
               </button>
             )}
           </div>
           {repeat.length === 0 && (
-            <p className="text-xs" style={{ color: '#3D3A6B' }}>Tidak berulang — berbunyi sekali</p>
+            <p className="text-xs" style={{ color: 'var(--muted-3)' }}>Tidak berulang — berbunyi sekali</p>
           )}
         </div>
 
-        {/* Snooze Duration */}
+        {/* Snooze */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
+          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
             Durasi Tunda
           </label>
           <div className="flex gap-1.5 flex-wrap">
@@ -270,9 +262,9 @@ export default function AlarmModal() {
                 onClick={() => setSnoozeDuration(min)}
                 className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200"
                 style={{
-                  background: snoozeDuration === min ? '#3D3A6B' : '#0D0D14',
-                  color: snoozeDuration === min ? '#A89FF7' : '#6B6A7D',
-                  border: `1px solid ${snoozeDuration === min ? '#7C6FF7' : '#2A2A3A'}`,
+                  background: snoozeDuration === min ? 'var(--accent-bg)' : 'var(--bg)',
+                  color: snoozeDuration === min ? 'var(--accent-soft)' : 'var(--muted)',
+                  border: `1px solid ${snoozeDuration === min ? 'var(--accent)' : 'var(--border)'}`,
                   fontFamily: 'Inter, sans-serif',
                 }}
               >
@@ -284,7 +276,7 @@ export default function AlarmModal() {
 
         {/* Sound */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
+          <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
             Suara
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -292,14 +284,14 @@ export default function AlarmModal() {
               <div
                 key={s}
                 className="flex items-stretch rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${sound === s ? '#7C6FF7' : '#2A2A3A'}` }}
+                style={{ border: `1px solid ${sound === s ? 'var(--accent)' : 'var(--border)'}` }}
               >
                 <button
                   onClick={() => setSound(s)}
                   className="flex-1 px-3 py-2.5 text-sm font-medium text-left transition-all duration-200"
                   style={{
-                    background: sound === s ? '#3D3A6B' : '#0D0D14',
-                    color: sound === s ? '#A89FF7' : '#6B6A7D',
+                    background: sound === s ? 'var(--accent-bg)' : 'var(--bg)',
+                    color: sound === s ? 'var(--accent-soft)' : 'var(--muted)',
                     fontFamily: 'Inter, sans-serif',
                   }}
                 >
@@ -309,9 +301,9 @@ export default function AlarmModal() {
                   onClick={() => handlePreview(s)}
                   className="flex items-center justify-center px-2.5 transition-all duration-200"
                   style={{
-                    background: sound === s ? '#3D3A6B' : '#0D0D14',
-                    borderLeft: `1px solid ${sound === s ? '#7C6FF760' : '#2A2A3A'}`,
-                    color: previewingSound === s ? '#7C6FF7' : '#4A4860',
+                    background: sound === s ? 'var(--accent-bg)' : 'var(--bg)',
+                    borderLeft: `1px solid ${sound === s ? 'var(--accent-bg)' : 'var(--border)'}`,
+                    color: previewingSound === s ? 'var(--accent)' : 'var(--muted-2)',
                   }}
                   title={previewingSound === s ? 'Stop' : 'Preview'}
                 >
@@ -321,26 +313,19 @@ export default function AlarmModal() {
             ))}
           </div>
 
-          {/* Custom upload */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="audio/*"
-            className="hidden"
-            onChange={handleFileUpload}
-          />
+          <input ref={fileInputRef} type="file" accept="audio/*" className="hidden" onChange={handleFileUpload} />
           {sound === 'custom' && customSoundName ? (
             <div
               className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-              style={{ background: '#3D3A6B', border: '1px solid #7C6FF7' }}
+              style={{ background: 'var(--accent-bg)', border: '1px solid var(--accent)' }}
             >
-              <span className="text-sm font-medium truncate flex-1" style={{ color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}>
+              <span className="text-sm font-medium truncate flex-1" style={{ color: 'var(--accent-soft)', fontFamily: 'Inter, sans-serif' }}>
                 📁 {customSoundName}
               </span>
               <button
                 onClick={() => handlePreview('custom')}
                 className="shrink-0 p-1 rounded-lg transition-colors"
-                style={{ color: previewingSound === 'custom' ? '#7C6FF7' : '#6B6A7D' }}
+                style={{ color: previewingSound === 'custom' ? 'var(--accent)' : 'var(--muted)' }}
                 title={previewingSound === 'custom' ? 'Stop' : 'Preview'}
               >
                 {previewingSound === 'custom' ? <Square size={12} /> : <Play size={12} />}
@@ -348,9 +333,9 @@ export default function AlarmModal() {
               <button
                 onClick={clearCustomSound}
                 className="shrink-0 p-1 rounded-lg transition-colors"
-                style={{ color: '#6B6A7D' }}
+                style={{ color: 'var(--muted)' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
               >
                 <X size={14} />
               </button>
@@ -360,18 +345,18 @@ export default function AlarmModal() {
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200"
               style={{
-                background: '#0D0D14',
-                color: '#6B6A7D',
-                border: '1px dashed #2A2A3A',
+                background: 'var(--bg)',
+                color: 'var(--muted)',
+                border: '1px dashed var(--border)',
                 fontFamily: 'Inter, sans-serif',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.borderColor = '#7C6FF7'
-                e.currentTarget.style.color = '#A89FF7'
+                e.currentTarget.style.borderColor = 'var(--accent)'
+                e.currentTarget.style.color = 'var(--accent-soft)'
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.borderColor = '#2A2A3A'
-                e.currentTarget.style.color = '#6B6A7D'
+                e.currentTarget.style.borderColor = 'var(--border)'
+                e.currentTarget.style.color = 'var(--muted)'
               }}
             >
               <Upload size={14} />
@@ -380,13 +365,13 @@ export default function AlarmModal() {
           )}
         </div>
 
-        {/* Save button */}
+        {/* Save */}
         <button
           onClick={handleSave}
           className="w-full py-4 rounded-2xl font-bold text-base transition-all duration-200 active:scale-95"
           style={{
-            background: 'linear-gradient(135deg, #7C6FF7 0%, #5B52C4 100%)',
-            color: '#F0EFF8',
+            background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
+            color: 'white',
             fontFamily: 'Inter, sans-serif',
           }}
           onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}

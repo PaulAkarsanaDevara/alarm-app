@@ -31,9 +31,13 @@ html, body {
   50% { opacity: 1; transform: scale(1.05); }
 }
 
-input[type='time']::-webkit-calendar-picker-indicator {
-  filter: invert(60%) sepia(40%) saturate(600%) hue-rotate(220deg);
-  cursor: pointer;
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
 }
 
 ::-webkit-scrollbar {

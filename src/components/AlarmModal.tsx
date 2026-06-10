@@ -80,18 +80,43 @@ export default function AlarmModal() {
           <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B6A7D' }}>
             Time
           </label>
-          <input
-            type="time"
-            value={time}
-            onChange={e => setTime(e.target.value)}
-            className="w-full text-4xl text-center font-bold rounded-2xl px-4 py-4 border-none outline-none"
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              background: '#0D0D14',
-              color: '#F0EFF8',
-              colorScheme: 'dark',
-            }}
-          />
+          <div
+            className="flex items-center justify-center rounded-2xl px-4 py-4 gap-1"
+            style={{ background: '#0D0D14' }}
+          >
+            <input
+              type="number"
+              min={0}
+              max={23}
+              value={time.split(':')[0]}
+              onChange={e => {
+                const h = Math.min(23, Math.max(0, parseInt(e.target.value) || 0))
+                setTime(`${String(h).padStart(2, '0')}:${time.split(':')[1]}`)
+              }}
+              onFocus={e => e.target.select()}
+              className="w-20 text-4xl text-center font-bold bg-transparent border-none outline-none"
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F0EFF8' }}
+            />
+            <span
+              className="text-4xl font-bold select-none"
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: '#7C6FF7' }}
+            >
+              :
+            </span>
+            <input
+              type="number"
+              min={0}
+              max={59}
+              value={time.split(':')[1]}
+              onChange={e => {
+                const m = Math.min(59, Math.max(0, parseInt(e.target.value) || 0))
+                setTime(`${time.split(':')[0]}:${String(m).padStart(2, '0')}`)
+              }}
+              onFocus={e => e.target.select()}
+              className="w-20 text-4xl text-center font-bold bg-transparent border-none outline-none"
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F0EFF8' }}
+            />
+          </div>
         </div>
 
         {/* Label */}

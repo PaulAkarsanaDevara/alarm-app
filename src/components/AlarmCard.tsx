@@ -14,13 +14,19 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 export default function AlarmCard({ alarm }: AlarmCardProps) {
   const dispatch = useAppDispatch()
   const [confirming, setConfirming] = useState(false)
+  const [exiting, setExiting] = useState(false)
   useAppSelector(s => s.alarm.currentTime) // re-render on tick so countdown stays fresh
+
+  function handleDelete() {
+    setExiting(true)
+    setTimeout(() => dispatch(deleteAlarm(alarm.id)), 260)
+  }
   const { hours, minutes } = formatTime(alarm.time)
   const countdown = getCountdown(alarm.time, alarm.repeat)
 
   return (
     <div
-      className="rounded-2xl p-4 md:p-5 transition-all duration-300 border"
+      className={`rounded-2xl p-4 md:p-5 transition-all duration-300 border ${exiting ? 'alarm-exit' : 'alarm-enter'}`}
       style={{
         background: alarm.enabled ? '#16161F' : '#111119',
         borderColor: alarm.ringing ? '#7C6FF7' : alarm.enabled ? '#2A2A3A' : '#1A1A28',
@@ -117,7 +123,7 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
                 Batal
               </button>
               <button
-                onClick={() => dispatch(deleteAlarm(alarm.id))}
+                onClick={handleDelete}
                 className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
                 style={{ background: '#3B1F1F', color: '#f87171', fontFamily: 'Inter, sans-serif' }}
               >

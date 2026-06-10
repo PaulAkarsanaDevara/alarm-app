@@ -122,11 +122,24 @@ export default function App() {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              {sortedAlarms.map(alarm => (
-                <AlarmCard key={alarm.id} alarm={alarm} />
-              ))}
-            </div>
+            <>
+              <div className="flex flex-col gap-3">
+                {sortedAlarms.map(alarm => (
+                  <AlarmCard key={alarm.id} alarm={alarm} />
+                ))}
+              </div>
+              {enabledCount === 0 && (
+                <div
+                  className="mt-4 flex items-center gap-3 px-4 py-3 rounded-2xl"
+                  style={{ background: '#16161F', border: '1px solid #1A1A28' }}
+                >
+                  <AlarmCheck size={16} style={{ color: '#3D3A6B', flexShrink: 0 }} />
+                  <p className="text-sm" style={{ color: '#3D3A6B', fontFamily: 'Inter, sans-serif' }}>
+                    Semua alarm dimatikan. Aktifkan salah satu untuk mulai.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

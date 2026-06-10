@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Trash2, Edit2 } from 'lucide-react'
 import type { Alarm } from '../types'
 import { useAppDispatch, useAppSelector } from '../hooks'
@@ -12,6 +13,7 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function AlarmCard({ alarm }: AlarmCardProps) {
   const dispatch = useAppDispatch()
+  const [confirming, setConfirming] = useState(false)
   useAppSelector(s => s.alarm.currentTime) // re-render on tick so countdown stays fresh
   const { hours, minutes } = formatTime(alarm.time)
   const countdown = getCountdown(alarm.time, alarm.repeat)
@@ -105,28 +107,47 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
           </button>
 
           {/* Edit & Delete */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => dispatch(openModal(alarm))}
-              className="p-1.5 rounded-lg transition-colors"
-              style={{ color: '#6B6A7D' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#A89FF7')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}
-              aria-label="Edit alarm"
-            >
-              <Edit2 size={15} />
-            </button>
-            <button
-              onClick={() => dispatch(deleteAlarm(alarm.id))}
-              className="p-1.5 rounded-lg transition-colors"
-              style={{ color: '#6B6A7D' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}
-              aria-label="Delete alarm"
-            >
-              <Trash2 size={15} />
-            </button>
-          </div>
+          {confirming ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setConfirming(false)}
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
+                style={{ background: '#1A1A28', color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => dispatch(deleteAlarm(alarm.id))}
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
+                style={{ background: '#3B1F1F', color: '#f87171', fontFamily: 'Inter, sans-serif' }}
+              >
+                Hapus
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => dispatch(openModal(alarm))}
+                className="p-1.5 rounded-lg transition-colors"
+                style={{ color: '#6B6A7D' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#A89FF7')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}
+                aria-label="Edit alarm"
+              >
+                <Edit2 size={15} />
+              </button>
+              <button
+                onClick={() => setConfirming(true)}
+                className="p-1.5 rounded-lg transition-colors"
+                style={{ color: '#6B6A7D' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#6B6A7D')}
+                aria-label="Delete alarm"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

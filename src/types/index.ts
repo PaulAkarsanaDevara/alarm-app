@@ -23,4 +23,5 @@ export interface AlarmState {
   currentTime: string
   modalOpen: boolean
   editingAlarm: Alarm | null
+  recentlyDeleted: Alarm | null
 }

@@ -25,6 +25,7 @@ const initialState: AlarmState = {
   currentTime: getCurrentTime(),
   modalOpen: false,
   editingAlarm: null,
+  recentlyDeleted: null,
 }
 
 const alarmSlice = createSlice({
@@ -51,9 +52,21 @@ const alarmSlice = createSlice({
       }
     },
     deleteAlarm(state, action: PayloadAction<string>) {
+      const alarm = state.alarms.find(a => a.id === action.payload)
+      state.recentlyDeleted = alarm ?? null
       state.alarms = state.alarms.filter(a => a.id !== action.payload)
       if (state.activeAlarmId === action.payload) state.activeAlarmId = null
       saveAlarms(state.alarms)
+    },
+    undoDelete(state) {
+      if (state.recentlyDeleted) {
+        state.alarms.push(state.recentlyDeleted)
+        state.recentlyDeleted = null
+        saveAlarms(state.alarms)
+      }
+    },
+    clearRecentlyDeleted(state) {
+      state.recentlyDeleted = null
     },
     toggleAlarm(state, action: PayloadAction<string>) {
       const alarm = state.alarms.find(a => a.id === action.payload)
@@ -110,6 +123,7 @@ export const {
   addAlarm, updateAlarm, deleteAlarm, toggleAlarm,
   tickTime, triggerAlarm, dismissAlarm, snoozeAlarm,
   openModal, closeModal,
+  undoDelete, clearRecentlyDeleted,
 } = alarmSlice.actions
 
 export default alarmSlice.reducer

@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Plus, AlarmCheck } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from './hooks'
-import { openModal, tickTime, triggerAlarm } from './store/alarmSlice'
+import { openModal, tickTime, triggerAlarm, undoDelete, clearRecentlyDeleted } from './store/alarmSlice'
 import { getCurrentTime, shouldAlarmRing, getMinutesUntil, formatMinutes } from './utils'
 import AnalogClock from './components/AnalogClock'
 import DigitalClock from './components/DigitalClock'
@@ -11,8 +11,9 @@ import RingingOverlay from './components/RingingOverlay'
 
 export default function App() {
   const dispatch = useAppDispatch()
-  const { alarms } = useAppSelector(s => s.alarm)
+  const { alarms, recentlyDeleted } = useAppSelector(s => s.alarm)
   const hasRinging = alarms.some(a => a.ringing)
+  const toastTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     function check() {
@@ -30,6 +31,15 @@ export default function App() {
     check()
     return () => clearInterval(t)
   }, [alarms, dispatch])
+
+  useEffect(() => {
+    if (!recentlyDeleted) return
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = window.setTimeout(() => {
+      dispatch(clearRecentlyDeleted())
+    }, 5000)
+    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current) }
+  }, [recentlyDeleted, dispatch])
 
   const enabledCount = alarms.filter(a => a.enabled).length
   const sortedAlarms = [...alarms].sort((a, b) => a.time.localeCompare(b.time))
@@ -120,6 +130,40 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {/* Undo toast */}
+      {recentlyDeleted && (
+        <div
+          className="fixed bottom-24 left-0 right-0 flex justify-center px-4 z-40"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl"
+            style={{
+              background: '#1E1D2E',
+              border: '1px solid #3D3A6B',
+              pointerEvents: 'auto',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            <span className="text-sm" style={{ color: '#9896A8' }}>
+              Alarm{recentlyDeleted.label ? ` "${recentlyDeleted.label}"` : ''} dihapus
+            </span>
+            <button
+              onClick={() => {
+                if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+                dispatch(undoDelete())
+              }}
+              className="text-sm font-semibold px-3 py-1 rounded-xl transition-colors"
+              style={{ background: '#3D3A6B', color: '#A89FF7' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#4D4A8B')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#3D3A6B')}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* FAB */}
       <div className="fixed bottom-8 left-0 right-0 flex justify-center sm:left-auto sm:right-8 sm:justify-end px-4">

@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
-import { Plus, AlarmCheck } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Plus, AlarmCheck, Bell, BellOff } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from './hooks'
 import { openModal, tickTime, triggerAlarm, undoDelete, clearRecentlyDeleted } from './store/alarmSlice'
 import { getCurrentTime, shouldAlarmRing, getMinutesUntil, formatMinutes } from './utils'
+import { requestNotificationPermission, showAlarmNotification, getNotificationPermission } from './utils/notifications'
 import loadable from '@loadable/component'
 
 const AnalogClock = loadable(() => import('./components/AnalogClock'))
@@ -16,23 +17,45 @@ export default function App() {
   const { alarms, recentlyDeleted } = useAppSelector(s => s.alarm)
   const hasRinging = alarms.some(a => a.ringing)
   const toastTimerRef = useRef<number | null>(null)
+  const alarmsRef = useRef(alarms)
+  alarmsRef.current = alarms
+
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(
+    () => getNotificationPermission()
+  )
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+
+  async function handleAllowNotifications() {
+    const result = await requestNotificationPermission()
+    setNotifPermission(result)
+  }
+
+  function checkAlarms() {
+    const now = getCurrentTime()
+    dispatch(tickTime(now))
+    alarmsRef.current.forEach(alarm => {
+      if (!alarm.enabled || alarm.ringing) return
+      if (shouldAlarmRing(alarm.time, alarm.repeat, alarm.snoozedUntil)) {
+        dispatch(triggerAlarm(alarm.id))
+        showAlarmNotification(alarm.id, alarm.label, alarm.time)
+      }
+    })
+  }
 
   useEffect(() => {
-    function check() {
-      const now = getCurrentTime()
-      dispatch(tickTime(now))
-      alarms.forEach(alarm => {
-        if (!alarm.enabled || alarm.ringing) return
-        if (shouldAlarmRing(alarm.time, alarm.repeat, alarm.snoozedUntil)) {
-          dispatch(triggerAlarm(alarm.id))
-        }
-      })
-    }
-
-    const t = setInterval(check, 5000)
-    check()
+    const t = setInterval(checkAlarms, 5000)
+    checkAlarms()
     return () => clearInterval(t)
-  }, [alarms, dispatch])
+  }, [dispatch])
+
+  // Re-check immediately when tab becomes visible (browser throttles background timers)
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === 'visible') checkAlarms()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [dispatch])
 
   useEffect(() => {
     if (!recentlyDeleted) return
@@ -52,12 +75,49 @@ export default function App() {
     .filter((x): x is { alarm: typeof x.alarm; mins: number } => x.mins !== null)
     .sort((a, b) => a.mins - b.mins)[0] ?? null
 
+  const showNotifBanner = !bannerDismissed && notifPermission !== null && notifPermission !== 'granted'
+
   return (
     <div className="min-h-screen" style={{ background: '#0D0D14' }}>
       <RingingOverlay />
       <AlarmModal />
 
       <div className="max-w-lg mx-auto px-4 pb-28">
+        {/* Notification permission banner */}
+        {showNotifBanner && (
+          <div
+            className="mt-4 flex items-center gap-3 px-4 py-3 rounded-2xl"
+            style={{ background: '#16161F', border: '1px solid #2A2A3A' }}
+          >
+            {notifPermission === 'denied' ? (
+              <BellOff size={16} style={{ color: '#6B6A7D', flexShrink: 0 }} />
+            ) : (
+              <Bell size={16} style={{ color: '#7C6FF7', flexShrink: 0 }} />
+            )}
+            <p className="text-sm flex-1" style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}>
+              {notifPermission === 'denied'
+                ? 'Notifikasi diblokir. Aktifkan melalui pengaturan browser.'
+                : 'Izinkan notifikasi agar alarm berbunyi di background.'}
+            </p>
+            {notifPermission === 'default' && (
+              <button
+                onClick={handleAllowNotifications}
+                className="text-xs font-semibold px-3 py-1.5 rounded-xl flex-shrink-0"
+                style={{ background: '#3D3A6B', color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}
+              >
+                Izinkan
+              </button>
+            )}
+            <button
+              onClick={() => setBannerDismissed(true)}
+              className="text-xs px-2 py-1 rounded-lg flex-shrink-0"
+              style={{ color: '#3D3A6B', fontFamily: 'Inter, sans-serif' }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Clock */}
         <div className="mt-10 flex flex-col items-center gap-4">
           <AnalogClock ringing={hasRinging} />

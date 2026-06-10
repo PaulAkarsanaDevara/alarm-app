@@ -5,7 +5,7 @@ import { dismissAlarm, snoozeAlarm } from '../store/alarmSlice'
 import { formatTime } from '../utils'
 import type { AlarmSound } from '../types'
 
-function playSound(ctx: AudioContext, sound: AlarmSound) {
+function playSound(ctx: AudioContext, sound: AlarmSound, output: AudioNode) {
   switch (sound) {
     case 'gentle': {
       // Two soft sine tones ascending (C5 → E5)
@@ -13,7 +13,7 @@ function playSound(ctx: AudioContext, sound: AlarmSound) {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.connect(gain)
-        gain.connect(ctx.destination)
+        gain.connect(output)
         osc.type = 'sine'
         osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.3)
         gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.3)
@@ -30,7 +30,7 @@ function playSound(ctx: AudioContext, sound: AlarmSound) {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.connect(gain)
-        gain.connect(ctx.destination)
+        gain.connect(output)
         osc.type = 'square'
         osc.frequency.setValueAtTime(880, ctx.currentTime + offset)
         gain.gain.setValueAtTime(0.12, ctx.currentTime + offset)
@@ -45,7 +45,7 @@ function playSound(ctx: AudioContext, sound: AlarmSound) {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
       osc.connect(gain)
-      gain.connect(ctx.destination)
+      gain.connect(output)
       osc.type = 'square'
       osc.frequency.setValueAtTime(1200, ctx.currentTime)
       gain.gain.setValueAtTime(0.12, ctx.currentTime)
@@ -60,7 +60,7 @@ function playSound(ctx: AudioContext, sound: AlarmSound) {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.connect(gain)
-        gain.connect(ctx.destination)
+        gain.connect(output)
         osc.type = 'sine'
         osc.frequency.setValueAtTime(1500 + i * 200, ctx.currentTime + offset)
         osc.frequency.exponentialRampToValueAtTime(2200 + i * 100, ctx.currentTime + offset + 0.14)
@@ -102,9 +102,15 @@ export default function RingingOverlay() {
     const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
     audioRef.current = ctx
 
+    // Master gain ramps from near-silent to full over 30s for a gradual wake
+    const masterGain = ctx.createGain()
+    masterGain.connect(ctx.destination)
+    masterGain.gain.setValueAtTime(0.05, ctx.currentTime)
+    masterGain.gain.exponentialRampToValueAtTime(1.0, ctx.currentTime + 30)
+
     const sound = activeAlarm.sound
-    playSound(ctx, sound)
-    intervalRef.current = window.setInterval(() => playSound(ctx, sound), SOUND_INTERVAL[sound])
+    playSound(ctx, sound, masterGain)
+    intervalRef.current = window.setInterval(() => playSound(ctx, sound, masterGain), SOUND_INTERVAL[sound])
 
     return () => {
       clearInterval(intervalRef.current ?? undefined)

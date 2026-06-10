@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Plus, AlarmCheck, Bell, BellOff } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from './hooks'
 import { openModal, tickTime, triggerAlarm, undoDelete, clearRecentlyDeleted } from './store/alarmSlice'
@@ -24,6 +24,15 @@ export default function App() {
     () => getNotificationPermission()
   )
   const [bannerDismissed, setBannerDismissed] = useState(false)
+
+  const [clockView, setClockView] = useState<'analog' | 'digital'>(
+    () => (localStorage.getItem('alarm-clock-view') as 'analog' | 'digital') ?? 'analog'
+  )
+
+  const toggleClock = useCallback((view: 'analog' | 'digital') => {
+    setClockView(view)
+    localStorage.setItem('alarm-clock-view', view)
+  }, [])
 
   async function handleAllowNotifications() {
     const result = await requestNotificationPermission()
@@ -120,8 +129,28 @@ export default function App() {
 
         {/* Clock */}
         <div className="mt-10 flex flex-col items-center gap-4">
-          <AnalogClock ringing={hasRinging} />
-          <DigitalClock />
+          {clockView === 'analog' ? <AnalogClock ringing={hasRinging} /> : <DigitalClock />}
+
+          {/* Clock view toggle */}
+          <div
+            className="flex items-center p-1 rounded-2xl"
+            style={{ background: '#16161F', border: '1px solid #2A2A3A' }}
+          >
+            {(['analog', 'digital'] as const).map(view => (
+              <button
+                key={view}
+                onClick={() => toggleClock(view)}
+                className="px-5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200"
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  background: clockView === view ? '#3D3A6B' : 'transparent',
+                  color: clockView === view ? '#A89FF7' : '#4A4860',
+                }}
+              >
+                {view === 'analog' ? 'Analog' : 'Digital'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Next alarm banner */}

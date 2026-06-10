@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Plus, AlarmCheck } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from './hooks'
 import { openModal, tickTime, triggerAlarm } from './store/alarmSlice'
-import { getCurrentTime, shouldAlarmRing } from './utils'
+import { getCurrentTime, shouldAlarmRing, getMinutesUntil, formatMinutes } from './utils'
 import AnalogClock from './components/AnalogClock'
 import DigitalClock from './components/DigitalClock'
 import AlarmCard from './components/AlarmCard'
@@ -33,6 +33,12 @@ export default function App() {
 
   const enabledCount = alarms.filter(a => a.enabled).length
   const sortedAlarms = [...alarms].sort((a, b) => a.time.localeCompare(b.time))
+
+  const nextAlarmEntry = alarms
+    .filter(a => a.enabled && !a.ringing)
+    .map(a => ({ alarm: a, mins: getMinutesUntil(a.time, a.repeat, a.snoozedUntil) }))
+    .filter((x): x is { alarm: typeof x.alarm; mins: number } => x.mins !== null)
+    .sort((a, b) => a.mins - b.mins)[0] ?? null
 
   return (
     <div className="min-h-screen" style={{ background: '#0D0D14' }}>
@@ -66,6 +72,22 @@ export default function App() {
           <AnalogClock ringing={hasRinging} />
           <DigitalClock />
         </div>
+
+        {/* Next alarm banner */}
+        {nextAlarmEntry && !hasRinging && (
+          <div
+            className="mt-5 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl"
+            style={{ background: '#16161F', border: '1px solid #2A2A3A' }}
+          >
+            <span className="text-sm" style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}>
+              Alarm berikutnya
+              {nextAlarmEntry.alarm.label ? ` "${nextAlarmEntry.alarm.label}"` : ''} dalam
+            </span>
+            <span className="text-sm font-semibold" style={{ color: '#A89FF7', fontFamily: 'Inter, sans-serif' }}>
+              {formatMinutes(nextAlarmEntry.mins)}
+            </span>
+          </div>
+        )}
 
         {/* Alarms */}
         <div className="mt-8">

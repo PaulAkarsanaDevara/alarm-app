@@ -71,6 +71,41 @@ export function shouldAlarmRing(time: string, repeat: RepeatDay[], snoozedUntil?
   return repeat.includes(todayDay)
 }
 
+export function getMinutesUntil(time: string, repeat: RepeatDay[], snoozedUntil?: number | null): number | null {
+  if (snoozedUntil && Date.now() < snoozedUntil) {
+    return Math.ceil((snoozedUntil - Date.now()) / 60000)
+  }
+
+  const now = new Date()
+  const [h, m] = time.split(':').map(Number)
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+
+  for (let i = 0; i < 7; i++) {
+    const candidate = new Date(now)
+    candidate.setDate(now.getDate() + i)
+    candidate.setHours(h, m, 0, 0)
+
+    if (candidate <= now) continue
+
+    if (repeat.length > 0) {
+      const dayName = days[candidate.getDay()] as RepeatDay
+      if (!repeat.includes(dayName)) continue
+    }
+
+    return Math.round((candidate.getTime() - now.getTime()) / 60000)
+  }
+
+  return null
+}
+
+export function formatMinutes(mins: number): string {
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h === 0) return `${m} menit`
+  if (m === 0) return `${h} jam`
+  return `${h} jam ${m} menit`
+}
+
 export function getCountdown(time: string, repeat: RepeatDay[]): string {
   const now = new Date()
   const [h, m] = time.split(':').map(Number)

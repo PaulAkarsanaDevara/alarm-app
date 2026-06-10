@@ -1,8 +1,8 @@
 import { Trash2, Edit2 } from 'lucide-react'
 import type { Alarm } from '../types'
-import { useAppDispatch } from '../hooks'
+import { useAppDispatch, useAppSelector } from '../hooks'
 import { toggleAlarm, deleteAlarm, openModal } from '../store/alarmSlice'
-import { formatTime, getNextAlarmTime, getSoundLabel } from '../utils'
+import { formatTime, getCountdown, getSoundLabel } from '../utils'
 
 interface AlarmCardProps {
   alarm: Alarm
@@ -12,8 +12,9 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function AlarmCard({ alarm }: AlarmCardProps) {
   const dispatch = useAppDispatch()
+  useAppSelector(s => s.alarm.currentTime) // re-render on tick so countdown stays fresh
   const { hours, minutes, period } = formatTime(alarm.time)
-  const nextTime = getNextAlarmTime(alarm.time, alarm.repeat)
+  const countdown = getCountdown(alarm.time, alarm.repeat)
 
   return (
     <div
@@ -74,7 +75,7 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
           {/* Next alarm & sound */}
           {alarm.enabled && (
             <p className="text-xs mt-2" style={{ color: '#6B6A7D' }}>
-              {nextTime ? `Rings ${nextTime}` : ''} · {getSoundLabel(alarm.sound)}
+              {countdown ? `Rings in ${countdown}` : ''} · {getSoundLabel(alarm.sound)}
             </p>
           )}
 

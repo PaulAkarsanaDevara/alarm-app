@@ -71,6 +71,35 @@ export function shouldAlarmRing(time: string, repeat: RepeatDay[], snoozedUntil?
   return repeat.includes(todayDay)
 }
 
+export function getCountdown(time: string, repeat: RepeatDay[]): string {
+  const now = new Date()
+  const [h, m] = time.split(':').map(Number)
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+
+  for (let i = 0; i < 7; i++) {
+    const candidate = new Date(now)
+    candidate.setDate(now.getDate() + i)
+    candidate.setHours(h, m, 0, 0)
+
+    if (candidate <= now) continue
+
+    if (repeat.length > 0) {
+      const dayName = days[candidate.getDay()] as RepeatDay
+      if (!repeat.includes(dayName)) continue
+    }
+
+    const totalMins = Math.round((candidate.getTime() - now.getTime()) / 60000)
+    const hrs = Math.floor(totalMins / 60)
+    const mins = totalMins % 60
+
+    if (hrs === 0) return `${mins}m`
+    if (mins === 0) return `${hrs}h`
+    return `${hrs}h ${mins}m`
+  }
+
+  return ''
+}
+
 export function getSoundLabel(sound: string): string {
   const labels: Record<string, string> = {
     gentle: '🔔 Gentle',

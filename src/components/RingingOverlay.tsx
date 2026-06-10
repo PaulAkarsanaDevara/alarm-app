@@ -86,35 +86,54 @@ export default function RingingOverlay() {
   const { alarms, activeAlarmId } = useAppSelector(s => s.alarm)
   const audioRef = useRef<AudioContext | null>(null)
   const intervalRef = useRef<number | null>(null)
+  const audioElementRef = useRef<HTMLAudioElement | null>(null)
+  const rampRef = useRef<number | null>(null)
 
   const activeAlarm = alarms.find(a => a.id === activeAlarmId && a.ringing)
 
   useEffect(() => {
     if (!activeAlarm) {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-      if (audioRef.current) {
-        audioRef.current.close()
-        audioRef.current = null
-      }
+      clearInterval(intervalRef.current ?? undefined)
+      clearInterval(rampRef.current ?? undefined)
+      if (audioRef.current) { audioRef.current.close(); audioRef.current = null }
+      if (audioElementRef.current) { audioElementRef.current.pause(); audioElementRef.current = null }
       return
     }
 
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-    audioRef.current = ctx
+    if (activeAlarm.sound === 'custom' && activeAlarm.customSoundDataUrl) {
+      // HTML5 Audio path for user-uploaded sounds
+      const audio = new Audio(activeAlarm.customSoundDataUrl)
+      audio.loop = true
+      audio.volume = 0.05
+      audioElementRef.current = audio
+      audio.play()
 
-    // Master gain ramps from near-silent to full over 30s for a gradual wake
-    const masterGain = ctx.createGain()
-    masterGain.connect(ctx.destination)
-    masterGain.gain.setValueAtTime(0.05, ctx.currentTime)
-    masterGain.gain.exponentialRampToValueAtTime(1.0, ctx.currentTime + 30)
+      const start = Date.now()
+      rampRef.current = window.setInterval(() => {
+        const t = (Date.now() - start) / 30000
+        audio.volume = Math.min(1.0, 0.05 + 0.95 * t)
+        if (audio.volume >= 1.0) clearInterval(rampRef.current ?? undefined)
+      }, 500)
+    } else {
+      // Web Audio API path for built-in sounds
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+      audioRef.current = ctx
 
-    const sound = activeAlarm.sound
-    playSound(ctx, sound, masterGain)
-    intervalRef.current = window.setInterval(() => playSound(ctx, sound, masterGain), SOUND_INTERVAL[sound])
+      const masterGain = ctx.createGain()
+      masterGain.connect(ctx.destination)
+      masterGain.gain.setValueAtTime(0.05, ctx.currentTime)
+      masterGain.gain.exponentialRampToValueAtTime(1.0, ctx.currentTime + 30)
+
+      const sound = activeAlarm.sound
+      playSound(ctx, sound, masterGain)
+      intervalRef.current = window.setInterval(() => playSound(ctx, sound, masterGain), SOUND_INTERVAL[sound])
+    }
 
     return () => {
       clearInterval(intervalRef.current ?? undefined)
-      ctx.close()
+      clearInterval(rampRef.current ?? undefined)
+      if (audioRef.current) { audioRef.current.close(); audioRef.current = null }
+      if (audioElementRef.current) { audioElementRef.current.pause(); audioElementRef.current = null }
     }
   }, [activeAlarm?.id])
 

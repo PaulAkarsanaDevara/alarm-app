@@ -7,12 +7,14 @@ export interface Alarm {
   enabled: boolean
   repeat: RepeatDay[]
   sound: AlarmSound
+  customSoundDataUrl?: string | null
+  customSoundName?: string | null
   createdAt: number
   ringing?: boolean
   snoozedUntil?: number | null
 }
 
-export type AlarmSound = 'gentle' | 'classic' | 'digital' | 'birds'
+export type AlarmSound = 'gentle' | 'classic' | 'digital' | 'birds' | 'custom'
 
 export interface AlarmState {
   alarms: Alarm[]

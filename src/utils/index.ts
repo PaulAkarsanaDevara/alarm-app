@@ -106,6 +106,7 @@ export function getSoundLabel(sound: string): string {
     classic: '⏰ Classic',
     digital: '📱 Digital',
     birds: '🐦 Birds',
+    custom: '📁 Custom',
   }
   return labels[sound] ?? sound
 }

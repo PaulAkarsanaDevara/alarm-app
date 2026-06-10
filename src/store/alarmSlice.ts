@@ -82,13 +82,14 @@ const alarmSlice = createSlice({
       if (state.activeAlarmId === action.payload) state.activeAlarmId = null
       saveAlarms(state.alarms)
     },
-    snoozeAlarm(state, action: PayloadAction<string>) {
-      const alarm = state.alarms.find(a => a.id === action.payload)
+    snoozeAlarm(state, action: PayloadAction<{ id: string; minutes: number }>) {
+      const { id, minutes } = action.payload
+      const alarm = state.alarms.find(a => a.id === id)
       if (alarm) {
         alarm.ringing = false
-        alarm.snoozedUntil = Date.now() + 5 * 60 * 1000 // 5 min snooze
+        alarm.snoozedUntil = Date.now() + minutes * 60 * 1000
       }
-      if (state.activeAlarmId === action.payload) state.activeAlarmId = null
+      if (state.activeAlarmId === id) state.activeAlarmId = null
       saveAlarms(state.alarms)
     },
     openModal(state, action: PayloadAction<Alarm | null>) {

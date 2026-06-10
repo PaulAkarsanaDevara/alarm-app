@@ -171,23 +171,36 @@ export default function RingingOverlay() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-4 mt-4">
-        <button
-          onClick={() => dispatch(snoozeAlarm(activeAlarm.id))}
-          className="flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold transition-all active:scale-95"
-          style={{
-            background: '#1E1D2E',
-            color: '#A89FF7',
-            border: '1px solid #3D3A6B',
-            fontFamily: 'Inter, sans-serif',
-          }}
-        >
-          <Moon size={18} />
-          Snooze 5 min
-        </button>
+      <div className="flex flex-col items-center gap-3 mt-4">
+        {/* Snooze duration options */}
+        <div className="flex items-center gap-2">
+          <Moon size={14} style={{ color: '#6B6A7D' }} />
+          <span className="text-xs font-semibold uppercase tracking-wider mr-1" style={{ color: '#6B6A7D', fontFamily: 'Inter, sans-serif' }}>
+            Snooze
+          </span>
+          {[5, 10, 15].map(min => (
+            <button
+              key={min}
+              onClick={() => dispatch(snoozeAlarm({ id: activeAlarm.id, minutes: min }))}
+              className="px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
+              style={{
+                background: '#1E1D2E',
+                color: '#A89FF7',
+                border: '1px solid #3D3A6B',
+                fontFamily: 'Inter, sans-serif',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = '#7C6FF7')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = '#3D3A6B')}
+            >
+              {min}m
+            </button>
+          ))}
+        </div>
+
+        {/* Dismiss */}
         <button
           onClick={() => dispatch(dismissAlarm(activeAlarm.id))}
-          className="flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold transition-all active:scale-95"
+          className="flex items-center gap-2 px-10 py-3.5 rounded-2xl font-semibold transition-all active:scale-95"
           style={{
             background: 'linear-gradient(135deg, #7C6FF7 0%, #5B52C4 100%)',
             color: '#F0EFF8',

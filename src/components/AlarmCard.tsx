@@ -85,7 +85,7 @@ export default function AlarmCard({ alarm }: AlarmCardProps) {
               className="inline-block text-xs mt-1 px-2 py-0.5 rounded-full"
               style={{ background: '#2A2040', color: '#A89FF7' }}
             >
-              Snoozed 5 min
+              Snoozed · {Math.ceil((alarm.snoozedUntil - Date.now()) / 60000)}m left
             </span>
           )}
         </div>
